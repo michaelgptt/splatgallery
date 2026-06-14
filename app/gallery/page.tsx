@@ -10,7 +10,7 @@ export default function GalleryPage() {
         <div className="flex justify-between items-center w-full px-margin-desktop h-16 max-w-360 mx-auto">
           <div className="flex items-center gap-8">
             <span className="text-headline-md font-headline-md font-extrabold text-on-background tracking-tighter">
-              3DGS Gallery
+              Splatgallery
             </span>
             <nav className="hidden md:flex gap-6">
               <a
@@ -33,7 +33,7 @@ export default function GalleryPage() {
       <main className="pt-24 pb-20 px-margin-desktop w-full min-h-screen">
         <section className="mb-12 text-center max-w-2xl mx-auto">
           <h1 className="text-display-lg font-display-lg text-on-background mb-4">
-            Discover 3DGS
+            Discover 3D Gaussian Splats
           </h1>
           <p className="text-body-lg font-body-lg text-on-surface-variant">
             Explore high-fidelity 3D Gaussian Splats from our research lab.
@@ -85,7 +85,7 @@ export default function GalleryPage() {
         <div className="flex flex-col md:flex-row justify-between items-center w-full px-margin-desktop max-w-360 mx-auto">
           <div className="flex flex-col items-center md:items-start mb-8 md:mb-0">
             <span className="text-label-md font-bold text-on-surface mb-2">
-              3DGS Gallery
+              Splatgallery
             </span>
             <p className="text-label-sm font-label-sm text-on-surface-variant">
               © 2026 University of Saskatchewan. All rights reserved.

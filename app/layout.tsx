@@ -9,7 +9,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: '3DGS Gallery',
+  title: 'Splatgallery',
   description:
     'Explore high-fidelity 3D Gaussian Splats from the University of Saskatchewan BigLab.',
 }
