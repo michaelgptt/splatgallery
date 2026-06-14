@@ -27,23 +27,6 @@ export default function GalleryPage() {
               </a>
             </nav>
           </div>
-
-          {/* The Search Bar */}
-          {/* <div className="flex items-center gap-4">
-            <div className="hidden lg:flex items-center bg-surface-container-low border border-outline-variant rounded-full px-4 py-1.5 gap-2 w-64 focus-within:border-primary-container transition-colors">
-              <span className="material-symbols-outlined text-on-surface-variant text-[20px]">
-                search
-              </span>
-              <input
-                className="bg-transparent border-none focus:ring-0 text-body-md p-0 w-full placeholder:text-on-surface-variant/50 text-on-surface outline-none"
-                placeholder="Search 3D Splats..."
-                type="text"
-              />
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high" />
-            </div>
-          </div> */}
         </div>
       </header>
 
@@ -58,8 +41,9 @@ export default function GalleryPage() {
         </section>
 
 
+        {/* One card per scene from scenes.json */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
-          {scenes.map((scene) => ( //after calling all the scenes in the scenes.json. It arranges all of them in cards
+          {scenes.map((scene) => (
             <Link
               key={scene.id}
               href={`/viewer/${scene.id}`}
@@ -95,16 +79,6 @@ export default function GalleryPage() {
             </Link>
           ))}
         </div>
-
-        {/* Show More Button */}
-        {/* <div className="mt-16 text-center">
-          <button
-            type="button"
-            className="border border-outline-variant text-on-surface-variant hover:text-primary-container hover:border-primary-container font-label-md text-label-md px-10 py-3 rounded-full transition-all bg-surface-container-low shadow-sm"
-          >
-            Show more
-          </button>
-        </div> */}
       </main>
 
       <footer className="bg-surface-container-lowest border-t border-outline-variant py-12 mt-20">
