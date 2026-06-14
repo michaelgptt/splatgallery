@@ -35,25 +35,3 @@ export function getSceneById(id: string): Scene | undefined {
 
   return undefined
 }
-
-//Grabs the file extension of the splat (either .ply or .lcc). 
-//Wish we didn't have to do this, I think the best layout would be to have 
-//Some way that at the layer when people are just uploading the splats, that the page would
-//Be able to determine which file extension that person just uploaded.
-
-export function getFileExtensionByID(id: string): string {
-  const allScenes: Scene[] = getScenes()
-
-  for (let i: number = 0; i < allScenes.length; i++) {
-    const scene: Scene = allScenes[i]
-    if (scene.id === id) {
-      const parts: string[] = scene.splat.split("/")
-      const fileExtension: string = parts[parts.length-1];
-      
-      return fileExtension
-    }
-  }
-  throw new Error("Unsupported File Extension")
-}
-
-// Test or Spec Driven Dev. I think both are good approaches.

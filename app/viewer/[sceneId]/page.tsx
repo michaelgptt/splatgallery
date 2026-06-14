@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getSceneById, getFileExtensionByID} from '@/lib/scenes'
+import { getSceneById } from '@/lib/scenes'
 import ViewerClient from './ViewerClient'
 
 type Params = { sceneId: string}
@@ -36,8 +36,6 @@ export default async function ViewerPage({params,}: {params: Promise<Params>}) {
   const sceneId: string = resolvedParams.sceneId
   const scene = getSceneById(sceneId)
   if (!scene) notFound() //throws a 404 page if the scene isn't found.
-
-  const fileType: string = getFileExtensionByID(sceneId)
 
   return (
     <div className="fixed inset-0 bg-background">
