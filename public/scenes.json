@@ -1,0 +1,11 @@
+[
+  {
+    "id": "1",
+    "title": "Airplane Room",
+    "thumb": "/fallbackthumb.jpg",
+    "splat": "/processed-data/airplaneroom/airplaneroom-sog/lod-meta.json",
+    "collisions": "/processed-data/airplaneroom/airplaneroom.voxel/airplaneroom.voxel.json",
+    "subtitle": "By Biglab"
+  }
+]
+

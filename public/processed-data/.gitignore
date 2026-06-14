@@ -1,0 +1,7 @@
+# Scene data (splats + collision files) is very large and is delivered to the
+# host out-of-band via scp + a docker volume — it must never be committed.
+#
+# This file keeps the processed-data/ directory itself tracked by git (so the
+# app has the folder it expects) while ignoring everything inside it.
+*
+!.gitignore
