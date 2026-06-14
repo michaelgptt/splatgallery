@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "public/supersplat-viewer/html-to-react.js"  ],
+  ],
   "exclude": ["node_modules"]
 }
