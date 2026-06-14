@@ -15,6 +15,15 @@ export function SuperSplatViewer({ contentUrl, collisionUrl, className }: Props)
     src += `&collision=${encodeURIComponent(collisionUrl)}`;
   }
 
+  // Sandbox trade-off, intentional:
+  //   allow-same-origin is required — the viewer fetch()es its own settings.json
+  //     and the splat file, which only works under connect-src 'self'.
+  //   allow-scripts + allow-same-origin together technically let the framed
+  //     document remove its own sandbox. We accept that here because the viewer
+  //     is first-party, prebuilt, static content whose only input is a URL param.
+  //   Future work: serve the viewer from a separate subdomain so it is genuinely
+  //     cross-origin, then allow-same-origin can be dropped for a real sandbox.
+  //     (See REFACTOR_PLAN "Future considerations: Real iframe sandbox".)
   return (
     <iframe
       src={src}
