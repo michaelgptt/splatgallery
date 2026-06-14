@@ -1,5 +1,9 @@
 node_modules
 
+# Next.js build artifacts
+.next/
+next-env.d.ts
+
 # Local Claude Code guidance — not tracked
 CLAUDE.md
 .claude/
