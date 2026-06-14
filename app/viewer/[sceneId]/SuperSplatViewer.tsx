@@ -5,11 +5,14 @@ interface Props {
   contentUrl: string;     // absolute URL to the splat
   collisionUrl?: string;  // optional absolute URL to the .voxel.json (or .glb) collision file
   className?: string;
+  title?: string;         // accessible name for the iframe
+  onLoad?: () => void;    // fired when the viewer document finishes loading
+  onError?: () => void;   // fired if the iframe itself fails to load
 }
 
 //?content=<encoded url> <-- Tells viewer which splat file to load
 //?collision=<encoded url> <-- Optional; viewer reads ?collision (or ?voxel) for walk-mode collisions
-export function SuperSplatViewer({ contentUrl, collisionUrl, className }: Props) {
+export function SuperSplatViewer({ contentUrl, collisionUrl, className, title, onLoad, onError }: Props) {
   let src = `/supersplat-viewer/index.html?content=${encodeURIComponent(contentUrl)}&noui`;
   if (collisionUrl) {
     src += `&collision=${encodeURIComponent(collisionUrl)}`;
@@ -27,9 +30,12 @@ export function SuperSplatViewer({ contentUrl, collisionUrl, className }: Props)
   return (
     <iframe
       src={src}
+      title={title ?? 'SuperSplat viewer'}
       sandbox="allow-scripts allow-same-origin allow-pointer-lock"
       className={`border-0 ${className ?? ''}`.trim()}
       allow="xr-spatial-tracking"
+      onLoad={onLoad}
+      onError={onError}
     />
   );
 }
