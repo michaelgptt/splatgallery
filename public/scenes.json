@@ -1,6 +1,7 @@
 [
   {
     "id": "1",
+    "slug": "thorv271",
     "title": "Airplane Room",
     "thumb": "/fallbackthumb.jpg",
     "splat": "/processed-data/airplaneroom/airplaneroom-sog/lod-meta.json",
