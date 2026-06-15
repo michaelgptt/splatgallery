@@ -9,7 +9,14 @@ export type Scene = {
   thumb: string
   splat: string
   subtitle: string
+  slug?: string        // optional human-readable URL alias, e.g. "thorv271" → /viewer/thorv271
   collisions?: string  // optional path to the .voxel.json (or .glb) collision file
+}
+
+// The canonical URL segment for a scene: its slug if it has one, else its id.
+// /viewer/<this> is the nice URL; numeric-id URLs redirect here.
+export function getSceneSlug(scene: Scene): string {
+  return scene.slug ?? scene.id
 }
 
 // Build an absolute path to scenes.json at startup
@@ -26,6 +33,11 @@ function isValidScene(value: unknown): value is Scene {
 
   for (const field of REQUIRED_FIELDS) {
     if (typeof candidate[field] !== 'string') return false
+  }
+
+  // slug is optional, but if present it must be a string
+  if ('slug' in candidate && typeof candidate.slug !== 'string') {
+    return false
   }
 
   // collisions is optional, but if present it must be a string
@@ -78,4 +90,19 @@ export function getSceneById(id: string): Scene | undefined {
   }
 
   return undefined
+}
+
+// Find a scene in a list by slug first, then by id. Pure (no file I/O) so the
+// lookup is easy to unit test. Slug wins on a collision so the canonical URL is
+// always reachable.
+export function findSceneBySlugOrId(scenes: Scene[], value: string): Scene | undefined {
+  return (
+    scenes.find((scene) => scene.slug === value) ??
+    scenes.find((scene) => scene.id === value)
+  )
+}
+
+// Find a scene by slug or id, reading from scenes.json.
+export function getSceneBySlugOrId(value: string): Scene | undefined {
+  return findSceneBySlugOrId(getScenes(), value)
 }
