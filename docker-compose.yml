@@ -1,0 +1,15 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+    volumes:
+      # Heavy splat assets live ONLY on the VM. They are not tracked in git and not
+      # baked into the image (see .dockerignore). rsync/scp them into
+      # ./public/processed-data on the VM BEFORE deploying; mounted read-only here.
+      - ./public/processed-data:/app/public/processed-data:ro #Host Volume
+    restart: unless-stopped

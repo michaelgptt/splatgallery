@@ -1,0 +1,20 @@
+# On the VM this must sit at the repo root (the Docker build context).
+# Keeps the image small and guarantees heavy/local-only files never get baked in.
+
+# a .dockerignore defines which local files and folders should be excluded when building a Docker image
+
+# Build / dependency artifacts (regenerated inside the image)
+node_modules
+.next
+
+# VCS and local-only tooling
+.git
+.gitignore
+deploy-scripts
+*.md
+
+# Heavy splat assets — delivered to the VM separately and bind-mounted at runtime
+public/processed-data
+
+# OS / editor cruft
+.DS_Store
