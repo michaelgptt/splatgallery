@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getScenes } from '@/lib/scenes'
+import { getScenes, getSceneSlug } from '@/lib/scenes'
 
 export default function GalleryPage() {
   const scenes = getScenes()
@@ -46,7 +46,7 @@ export default function GalleryPage() {
           {scenes.map((scene) => (
             <Link
               key={scene.id}
-              href={`/viewer/${scene.id}`}
+              href={`/viewer/${getSceneSlug(scene)}`}
               className="group cursor-pointer block"
             >
               <div className="relative aspect-4/3 rounded-xl overflow-hidden bg-surface-container border border-outline-variant hover-scale">
