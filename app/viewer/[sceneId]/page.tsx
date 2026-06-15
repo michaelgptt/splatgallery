@@ -1,6 +1,6 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getSceneById } from '@/lib/scenes'
+import { getSceneBySlugOrId, getSceneSlug } from '@/lib/scenes'
 import ViewerClient from './ViewerClient'
 
 type Params = { sceneId: string}
@@ -16,7 +16,7 @@ export async function generateMetadata(args: GenerateMetadataArgs): Promise<Meta
   const resolvedParams = await args.params       // wait for the route params to be ready
   const sceneId = resolvedParams.sceneId         // pull out the scene ID from the URL
 
-  const scene = getSceneById(sceneId)            // look up the scene in our manifest
+  const scene = getSceneBySlugOrId(sceneId)      // look up the scene by slug or id
 
   // If the scene exists, show its title; otherwise show a fallback
   let pageTitle: string
@@ -34,8 +34,16 @@ export async function generateMetadata(args: GenerateMetadataArgs): Promise<Meta
 export default async function ViewerPage({params,}: {params: Promise<Params>}) {
   const resolvedParams: Params = await params
   const sceneId: string = resolvedParams.sceneId
-  const scene = getSceneById(sceneId)
+  const scene = getSceneBySlugOrId(sceneId)
   if (!scene) notFound() //throws a 404 page if the scene isn't found.
+
+  // Canonicalize to the nice slug URL: if the visitor arrived via the numeric id
+  // (or any non-canonical alias), redirect to /viewer/<slug>. 307 (temporary) so
+  // a future slug change isn't hard-cached by browsers.
+  const canonicalSlug = getSceneSlug(scene)
+  if (sceneId !== canonicalSlug) {
+    redirect(`/viewer/${canonicalSlug}`)
+  }
 
   return (
     <div className="fixed inset-0 bg-background">
