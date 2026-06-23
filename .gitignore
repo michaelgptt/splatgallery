@@ -7,8 +7,9 @@ next-env.d.ts
 # Local Claude Code guidance — not tracked
 CLAUDE.md
 .claude/
-REFACTOR_PLAN.md
-PLAN.md
+PLAN1.md
+PLAN2.md
+PLAN3.md
 default
 nginx.conf
 DEPLOY.md
