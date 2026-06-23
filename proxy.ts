@@ -155,7 +155,11 @@ export function proxy(request: NextRequest) {
 
 
 
-//To-Do exclude processed-files since I don't think we need to pass them through our proxy.ts
+// The heavy splat assets under /processed-data are excluded below: in production
+// nginx serves them directly off disk (they never reach Node), and even in
+// `npm run dev` there's no reason to run the CSP middleware per tile. NOTE: the
+// exclusion is matched at a position with NO leading slash, so it must be written
+// `processed-data`, not `/processed-data` — the latter silently never matches.
 export const config = {
   matcher: [
     /*
@@ -166,7 +170,7 @@ export const config = {
      * - favicon.ico (favicon file)
      */
     {
-      source: '/((?!api|_next/static|_next/image|favicon.ico|/processed-data).*)',
+      source: '/((?!api|_next/static|_next/image|favicon.ico|processed-data).*)',
       missing: [
         { type: 'header', key: 'next-router-prefetch' },
         { type: 'header', key: 'purpose', value: 'prefetch' },
