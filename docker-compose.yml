@@ -2,7 +2,10 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile
+      # Build from the git-tracked Dockerfile.txt directly. Docker ignores the
+      # extension, and this keeps the file Compose builds from the same one git
+      # tracks — so `git pull` always updates it (no rename dance on the VM).
+      dockerfile: Dockerfile.txt
     ports:
       - '3000:3000'
     environment:

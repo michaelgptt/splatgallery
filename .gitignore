@@ -9,3 +9,6 @@ CLAUDE.md
 .claude/
 REFACTOR_PLAN.md
 PLAN.md
+default
+nginx.conf
+DEPLOY.md

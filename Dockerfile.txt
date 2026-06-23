@@ -1,6 +1,7 @@
-# On the VM this file must be named `Dockerfile` (no extension) at the repo root,
-# or referenced explicitly from docker-compose.yml (it is). The `.txt` is just so
-# it's an inert, editable local copy on Windows.
+# docker-compose.yml builds from this file directly (`dockerfile: Dockerfile.txt`),
+# so no rename is needed on the VM. The `.txt` keeps it an inert, editable copy on
+# Windows, and because it's the git-tracked file Compose uses, `git pull` keeps it
+# current. Docker ignores the extension.
 
 FROM node:22-alpine AS base
 
