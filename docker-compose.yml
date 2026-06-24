@@ -15,4 +15,5 @@ services:
       # baked into the image (see .dockerignore). rsync/scp them into
       # ./public/processed-data on the VM BEFORE deploying; mounted read-only here.
       - ./public/processed-data:/app/public/processed-data:ro #Host Volume
+      # [host_path]:[container_path][:options]
     restart: unless-stopped
