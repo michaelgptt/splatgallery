@@ -1,0 +1,79 @@
+# Default server configuration
+
+# An Nginx default server block is the fallback configuration used to process 
+# an incoming HTTP request when the requested hostname (found in the HTTP Host header) 
+# does not match any explicitly defined server_name in your other configuration files
+
+server {
+
+    server_name _;
+
+    listen 80 default_server;
+    listen [::]:80 default_server;
+ 
+    return 444;
+}
+
+#Secure server block 
+server {
+
+    server_name biglab.usask.ca; # managed by Certbot
+
+    # SPLAT ASSETS — served straight from disk, NOT through the Node container.
+    # nginx runs on this host, so it reads the same files the container sees via
+    # its read-only bind mount. This is the load-bearing fix for the 503 flood
+    # that broke partial scene loads (see PLAN3.md). Longest-prefix match means
+    # these URLs win over `location /` below, so Node never sees them.
+    
+    location /processed-data/ {
+        # root + request URI = real path on disk:
+        # /processed-data/foo.webp -> <root>/processed-data/foo.webp
+        root /path/to/splatgallery/public;   # <-- EDIT: VM repo clone + /public (run `pwd` in the repo dir)
+
+        try_files $uri =404;                 # clean 404 if a file is genuinely missing
+        expires 7d;                          # tiles don't change for a given scene
+        add_header Cache-Control "public";
+        access_log off;                      # optional: don't flood the log with tile hits
+    }
+
+    # NEXT.JS REVERSE PROXY WITH STREAMING/ACTIONS SUPPORT
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade; 
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;           
+        proxy_cache_bypass $http_upgrade;      
+
+        # Disable buffering for Next.js Server Actions / Streaming support
+        proxy_buffering off;
+        proxy_set_header X-Accel-Buffering no;
+    }
+
+
+    listen [::]:443 ssl ipv6only=on; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+
+    ssl_certificate /etc/letsencrypt/live/biglab.usask.ca/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/biglab.usask.ca/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+#HTTP redirect
+#Listens on port 80 for a HTTP request to biglab.usask.ca
+#Returns a 301 to the user which will automatically bounce the user to
+#Go through the secure server block (it seems)
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name biglab.usask.ca; 
+
+    return 301 https://$host$request_uri;
+}
+
+# :%d to delete every line in vim
+# scp username@remote_host:/path/to/remote/file.txt /path/to/local/destination
+# sudo systemctl restart nginx
