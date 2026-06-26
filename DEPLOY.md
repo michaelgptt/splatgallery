@@ -32,43 +32,18 @@ reverse proxy           →  unchanged; keeps pointing at 127.0.0.1:3000
 
 Two things to keep straight, because they live in **different places**:
 
-| Thing | Where it lives | How it updates |
-|---|---|---|
-| App code, `public/scenes.json`, the SuperSplat viewer | **Baked into the image** at build time | Requires an **image rebuild** |
-| Splat assets in `public/processed-data/<scene>/…` | **On the VM disk**, bind-mounted read-only | Just copy files to the VM; **no rebuild needed** for the bytes |
+| Thing                                                 | Where it lives                             | How it updates                                                 |
+| ----------------------------------------------------- | ------------------------------------------ | -------------------------------------------------------------- |
+| App code, `public/scenes.json`, the SuperSplat viewer | **Baked into the image** at build time     | Requires an **image rebuild**                                  |
+| Splat assets in `public/processed-data/<scene>/…`     | **On the VM disk**, bind-mounted read-only | Just copy files to the VM; **no rebuild needed** for the bytes |
 
-> **Important consequence:** adding a new scene is usually *both* jobs at once —
+> **Important consequence:** adding a new scene is usually _both_ jobs at once —
 > you edit `public/scenes.json` (code → needs a rebuild) **and** you drop the new
 > scene's asset folder into `public/processed-data` on the VM (bytes → just a
 > file copy). See [§4](#4-when-you-add-or-change-a-scene-asset-sync).
 
 What **survives** a redeploy: the bind-mounted `public/processed-data` assets,
 and anything outside the container (the reverse proxy, TLS certs, the OS).
-
----
-
-## 2. One-time setup on the VM (do this once, then forget it)
-
-### 2a. The `Dockerfile.txt` / `Dockerfile` situation — already handled
-
-The repo tracks **`Dockerfile.txt`** (the `.txt` keeps it an inert, editable copy
-on Windows). `docker-compose.yml` now builds from `Dockerfile.txt` **directly**:
-
-```yaml
-build:
-  context: .
-  dockerfile: Dockerfile.txt
-```
-
-Docker ignores the extension, so the file Compose builds from is the same one git
-tracks. That means `git pull` always brings the current build recipe and **there
-is no rename step on the VM** — you never need a separate `Dockerfile`. (This is
-why the runbook below has no `cp Dockerfile.txt Dockerfile` step.)
-
-### 2b. Docker Compose version
-
-The VM uses the **v2** plugin, invoked as `docker compose` (a space) — confirmed
-with `docker compose version`. This guide uses that form throughout.
 
 ---
 
@@ -98,7 +73,7 @@ git pull --ff-only origin main
 instead of creating a surprise merge commit. If it fails, see
 [§7 Troubleshooting](#7-troubleshooting).
 
-### Step 4 — Sync scene assets *if you added/changed a scene*
+### Step 4 — Sync scene assets _if you added/changed a scene_
 
 If this deploy includes a new or changed scene, copy its assets to the VM now.
 See [§4](#4-when-you-add-or-change-a-scene-asset-sync) for the exact command.
@@ -186,7 +161,7 @@ scp -r ./public/processed-data/<scene> \
 ```
 
 > The bind mount is **read-only** (`:ro`) from the container's side — that only
-> stops the *app* from writing there. You (the host user over SSH) can still
+> stops the _app_ from writing there. You (the host user over SSH) can still
 > write to the directory normally.
 
 **Order of operations when adding a scene:**
@@ -220,7 +195,7 @@ Assets are untouched by rollback — they live outside git and the image.
 
 nginx on the VM terminates HTTPS for **biglab.usask.ca** (Let's Encrypt / Certbot
 certs) and forwards traffic to the container on `localhost:3000`. A redeploy swaps
-the container *behind* that port; the mapping (`3000:3000`) is stable, so **nginx
+the container _behind_ that port; the mapping (`3000:3000`) is stable, so **nginx
 needs no changes for a normal code deploy.**
 
 The live config lives on the VM (a copy is kept in the repo for reference):
@@ -259,15 +234,15 @@ The app's own CSP is handled inside Next.js (`proxy.ts`), **not** in nginx.
 
 ## 7. Troubleshooting
 
-| Symptom | Likely cause / fix |
-|---|---|
-| `git pull --ff-only` fails | Someone/something committed on the VM. Run `git status`; if it's junk, `git reset --hard origin/main` (this discards local edits — assets are safe, they're untracked). |
-| Build fails at `npm ci` | `package-lock.json` out of sync with `package.json`, or the lockfile didn't get pulled. Re-pull; ensure both are committed. |
-| Build uses old code | You forgot `--build` on the `docker compose up`. |
-| Container restart-loops | `docker compose logs web` — usually a runtime crash or a bad env var. |
-| App works on `:3000` but not on biglab.usask.ca | nginx issue: `sudo nginx -t`, `sudo systemctl status nginx`, check `/var/log/nginx/error.log`, confirm the cert is valid (`sudo certbot certificates`). |
-| Scene 404s / viewer is blank | Asset folder missing or misnamed under `public/processed-data/<scene>/`, or the `splat`/`collisions` paths in `scenes.json` don't match the folder layout. |
-| Disk filling up | Old images: `docker image prune -f` (or `docker system prune` for a deeper clean — read what it removes first). |
+| Symptom                                         | Likely cause / fix                                                                                                                                                      |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `git pull --ff-only` fails                      | Someone/something committed on the VM. Run `git status`; if it's junk, `git reset --hard origin/main` (this discards local edits — assets are safe, they're untracked). |
+| Build fails at `npm ci`                         | `package-lock.json` out of sync with `package.json`, or the lockfile didn't get pulled. Re-pull; ensure both are committed.                                             |
+| Build uses old code                             | You forgot `--build` on the `docker compose up`.                                                                                                                        |
+| Container restart-loops                         | `docker compose logs web` — usually a runtime crash or a bad env var.                                                                                                   |
+| App works on `:3000` but not on biglab.usask.ca | nginx issue: `sudo nginx -t`, `sudo systemctl status nginx`, check `/var/log/nginx/error.log`, confirm the cert is valid (`sudo certbot certificates`).                 |
+| Scene 404s / viewer is blank                    | Asset folder missing or misnamed under `public/processed-data/<scene>/`, or the `splat`/`collisions` paths in `scenes.json` don't match the folder layout.              |
+| Disk filling up                                 | Old images: `docker image prune -f` (or `docker system prune` for a deeper clean — read what it removes first).                                                         |
 
 ---
 
@@ -282,7 +257,7 @@ VM beyond what's already there.
 ### 8a. Put the runbook in a script on the VM
 
 So the workflow stays tiny and the manual path and the automated path run the
-*exact same* commands, create `deploy-scripts/deploy.sh` in the repo (the
+_exact same_ commands, create `deploy-scripts/deploy.sh` in the repo (the
 `.dockerignore` already excludes `deploy-scripts`, so it won't bloat the image):
 
 ```bash
@@ -331,11 +306,11 @@ name: Deploy to VM
 
 on:
   push:
-    branches: [main]      # fires on every merge/push to main
-  workflow_dispatch: {}   # lets you trigger a deploy manually from the Actions tab
+    branches: [main] # fires on every merge/push to main
+  workflow_dispatch: {} # lets you trigger a deploy manually from the Actions tab
 
 concurrency:
-  group: deploy-main      # never run two deploys at once
+  group: deploy-main # never run two deploys at once
   cancel-in-progress: false
 
 jobs:
@@ -357,7 +332,7 @@ and restarts. Watch runs under the repo's **Actions** tab; failures email you.
 ### 8d. Sensible next steps once that works
 
 - **Build/lint before deploying.** Add a job that runs `npm ci && npm run lint &&
-  npm run build` (and `npm test` — the repo has Vitest wired up) and only deploy
+npm run build` (and `npm test` — the repo has Vitest wired up) and only deploy
   if it passes. Catches breakage before it hits the VM.
 - **Smoke-test after deploy.** Have the script `curl -fsS http://127.0.0.1:3000`
   at the end so a broken boot fails the workflow loudly.
