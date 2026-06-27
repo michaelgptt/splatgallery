@@ -19,37 +19,63 @@ server {
 
     server_name biglab.usask.ca; # managed by Certbot
 
-    # SPLAT ASSETS — served straight from disk, NOT through the Node container.
-    # nginx runs on this host, so it reads the same files the container sees via
-    # its read-only bind mount. This is the load-bearing fix for the 503 flood
-    # that broke partial scene loads (see PLAN3.md). Longest-prefix match means
-    # these URLs win over `location /` below, so Node never sees them.
-    
-    location /processed-data/ {
-        # root + request URI = real path on disk:
-        # /processed-data/foo.webp -> <root>/processed-data/foo.webp
-        root /path/to/splatgallery/public;   # <-- EDIT: VM repo clone + /public (run `pwd` in the repo dir)
+    # ───────── STATIC /public — served off disk by nginx, never touches Node ─────────
+    # root /srv/data maps e.g. /fonts/x.woff2 -> /srv/data/fonts/x.woff2.
 
-        try_files $uri =404;                 # clean 404 if a file is genuinely missing
-        expires 7d;                          # tiles don't change for a given scene
-        add_header Cache-Control "public";
-        access_log off;                      # optional: don't flood the log with tile hits
+    # The viewer is the only static *document* in /public, so it's the only static
+    # thing that needs a CSP. nginx emits it in prod, so nginx stamps the CSP here.
+    # Keep byte-identical to VIEWER_CSP in proxy.ts.
+    location /supersplat-viewer/ {
+        root /srv/data;
+        try_files $uri =404;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'" always;
+        expires 1h;                       # viewer app changes only on deploy
+        add_header Cache-Control "public" always;
     }
 
-    # NEXT.JS REVERSE PROXY WITH STREAMING/ACTIONS SUPPORT
+    # Heavy splat tiles — immutable per scene, cache hard.
+    location /processed-data/ {
+        root /srv/data;
+        try_files $uri =404;
+        expires 7d;
+        add_header Cache-Control "public" always;
+        access_log off;                   # don't flood the log with hundreds of tiles
+    }
+
+    # Self-hosted fonts — immutable.
+    location /fonts/ {
+        root /srv/data;
+        try_files $uri =404;
+        expires 30d;
+        add_header Cache-Control "public" always;
+    }
+
+    # Scene manifest — changes every deploy, must NOT be cached.
+    location = /scenes.json {
+        root /srv/data;
+        add_header Cache-Control "no-store" always;
+    }
+
+    # Fallback thumbnail.
+    location = /fallbackthumb.jpg {
+        root /srv/data;
+        expires 7d;
+        add_header Cache-Control "public" always;
+    }
+
+    # ───────── EVERYTHING ELSE → Node (app pages, /_next/*, Server Actions) ─────────
+    # Node stamps the strict per-request nonce CSP itself; nginx must NOT add a CSP
+    # here or it would collide with the nonce.
     location / {
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade; 
+        proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;           
-        proxy_cache_bypass $http_upgrade;      
-
-        # Disable buffering for Next.js Server Actions / Streaming support
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
         proxy_buffering off;
         proxy_set_header X-Accel-Buffering no;
     }
-
 
     listen [::]:443 ssl ipv6only=on; # managed by Certbot
     listen 443 ssl; # managed by Certbot

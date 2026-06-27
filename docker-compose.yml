@@ -11,9 +11,12 @@ services:
     environment:
       - NODE_ENV=production
     volumes:
-      # Heavy splat assets live ONLY on the VM. They are not tracked in git and not
-      # baked into the image (see .dockerignore). rsync/scp them into
-      # ./public/processed-data on the VM BEFORE deploying; mounted read-only here.
-      - ./public/processed-data:/app/public/processed-data:ro #Host Volume
+      # The entire /public tree lives on the VM at the canonical path /srv/data —
+      # one source of truth for nginx (served off disk) and this container (via
+      # this mount). Light assets are mirrored from git by deploy-scripts/deploy.sh;
+      # the heavy processed-data splats are rsync/scp'd into /srv/data/processed-data
+      # separately (not in git or the image). The mount must be COMPLETE before
+      # `docker compose up` — it shadows the /app/public baked into the image.
+      - /srv/data:/app/public:ro
       # [host_path]:[container_path][:options] ":ro" prevents docker from changing files in host directory.
     restart: unless-stopped
