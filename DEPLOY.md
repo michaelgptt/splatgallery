@@ -14,7 +14,7 @@ Setup this assumes (from how the VM is configured today):
   **serves the static `/public` tree off disk** from `/srv/data`, and
   reverse-proxies everything else to `localhost:3000`. See
   [§6](#6-the-nginx-reverse-proxy).
-- The entire `/public` tree lives **only on the VM**, at the canonical path
+- The entire `/public` tree (directory) lives **only on the VM**, at the canonical path
   **`/srv/data`**. nginx serves it off disk; the container sees the same files
   through a **read-only bind mount** (`/srv/data:/app/public:ro`). The light,
   git-tracked assets are re-mirrored into `/srv/data` from the repo on every deploy;
@@ -39,11 +39,11 @@ nginx                     →  unchanged; serves /public off /srv/data, proxies 
 
 Three things to keep straight, because they live in **different places**:
 
-| Thing                                                            | Where it's served from                                                      | How it updates                                                                                        |
-| --------------------------------------------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| App pages (`/`, `/gallery`, `/viewer/*`), `/_next/*`, Server Actions | **Node**, in the container                                                  | Requires an **image rebuild**                                                                          |
-| Static `/public` — `/fonts/*`, `/supersplat-viewer/*`, `/fallbackthumb.jpg`, `processed-data/<scene>/…` | **nginx**, off `/srv/data`                                                  | Just sync files into `/srv/data`; **no rebuild** for the bytes                                        |
-| `public/scenes.json`                                            | **nginx** off `/srv/data` at runtime — **but the gallery grid is prerendered into the image** | **Rebuild** to change the grid; the deploy rsync keeps `/srv/data/scenes.json` identical so they never diverge |
+| Thing                                                                                                   | Where it's served from                                                                        | How it updates                                                                                                 |
+| ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| App pages (`/`, `/gallery`, `/viewer/*`), `/_next/*`, Server Actions                                    | **Node**, in the container                                                                    | Requires an **image rebuild**                                                                                  |
+| Static `/public` — `/fonts/*`, `/supersplat-viewer/*`, `/fallbackthumb.jpg`, `processed-data/<scene>/…` | **nginx**, off `/srv/data`                                                                    | Just sync files into `/srv/data`; **no rebuild** for the bytes                                                 |
+| `public/scenes.json`                                                                                    | **nginx** off `/srv/data` at runtime — **but the gallery grid is prerendered into the image** | **Rebuild** to change the grid; the deploy rsync keeps `/srv/data/scenes.json` identical so they never diverge |
 
 > **Important consequence:** adding a new scene is usually _both_ jobs at once —
 > you edit `public/scenes.json` (code → needs a rebuild for the prerendered grid)
@@ -166,16 +166,8 @@ A scene has **two halves** that update independently:
 
 Because the assets are served straight off `/srv/data` (not baked in), copying them
 does **not** require a rebuild — nginx and the running container see new files
-immediately. But since adding a scene also changes `scenes.json`, you'll typically
-do the rebuild anyway.
-
-> **First-time migration** — existing scenes are already on the VM from the old
-> `./public/processed-data` mount. Move them into `/srv/data` _locally on the VM_
-> (no network, no Windows rsync needed):
->
-> ```bash
-> rsync -a --chmod=D755,F644 ~/app/public/processed-data/ /srv/data/processed-data/
-> ```
+immediately. But since adding a scene also requires us to change `scenes.json`,
+you'll typically need to rebuild anyway.
 
 **Recommended copy command** — `rsync` over SSH from wherever you process the
 splats (resumable and only transfers diffs, which matters for multi-GB scenes).
@@ -297,7 +289,7 @@ nginx stamps its CSP, which must stay **byte-identical** to `VIEWER_CSP` in
 
 ---
 
-## 8. Toward CI/CD — GitHub Actions deploying over SSH
+## 8. Toward CI/CD — GitHub Actions deploying over SSH -- WIP
 
 The goal you described — "a listener for every merge into `main`" — is exactly a
 **GitHub Actions workflow triggered on push to `main`**. GitHub already watches
